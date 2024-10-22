@@ -6,7 +6,6 @@
 
 body {
     font-family: 'Arial', sans-serif;
-    line-height: 1.6;
     background-color: #f4f4f4;
     color: #333;
 }
@@ -14,43 +13,73 @@ body {
 header {
     background: #3e64ff;
     color: #fff;
-    padding: 1rem 0;
+    padding: 2rem;
     text-align: center;
 }
 
 header h1 {
-    font-size: 2.5rem;
+    font-size: 3rem;
 }
 
 header p {
-    font-size: 1.2rem;
+    font-size: 1.5rem;
+    margin-top: 1rem;
 }
 
-.container {
-    width: 80%;
-    margin: 0 auto;
-    padding: 1rem;
+.btn {
+    display: inline-block;
+    background-color: #ff5722;
+    color: #fff;
+    padding: 0.8rem 1.5rem;
+    margin-top: 1rem;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.btn:hover {
+    background-color: #e64a19;
 }
 
 .section {
-    padding: 2rem 0;
+    padding: 3rem 0;
+    background-color: #fff;
 }
 
 .section h2 {
-    font-size: 2rem;
-    margin-bottom: 1rem;
+    text-align: center;
+    font-size: 2.5rem;
     color: #3e64ff;
 }
 
-.section p, 
-.section ul {
-    font-size: 1.1rem;
-    margin-bottom: 1rem;
+.section p {
+    text-align: center;
+    font-size: 1.2rem;
+    margin: 1rem 0;
 }
 
-ul {
-    list-style-type: disc;
-    padding-left: 1.5rem;
+.model-box {
+    background-color: #f0f0f0;
+    padding: 2rem;
+    margin: 1rem 0;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.model-box h3 {
+    font-size: 1.8rem;
+    color: #3e64ff;
+}
+
+.model-box p {
+    font-size: 1rem;
+}
+
+.hidden-text {
+    display: none;
+    margin-top: 1rem;
+    font-size: 1rem;
 }
 
 footer {
@@ -58,7 +87,6 @@ footer {
     color: #fff;
     text-align: center;
     padding: 1rem 0;
-    margin-top: 2rem;
 }
 
 footer p {
