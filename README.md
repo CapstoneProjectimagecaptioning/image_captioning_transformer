@@ -1,6 +1,6 @@
 # 🖼️ Image Captioning using Transformer Models 🧠
 
-![Project Banner](https://your-image-link-here.com/banner.png)
+![Project Banner](https://www.google.com/url?sa=i&url=https%3A%2F%2Fcv-tricks.com%2Fartificial-intelligence%2Fshow-attend-tell-image-captioning-explained%2F&psig=AOvVaw097dHYGnqR1AJSqTMP5u8y&ust=1729728439079000&source=images&cd=vfe&opi=89978449&ved=0CBQQjRxqFwoTCNCfq9uao4kDFQAAAAAdAAAAABAR)
 
 ## 📋 Table of Contents
 1. [Project Overview](#project-overview)
