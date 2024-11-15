@@ -260,7 +260,7 @@ generated or the max length limit is reached.
 - The generate_caption function generates a caption for a new image by feeding it through the model. The function iteratively predicts tokens, appending each token to the generated sequence until the [end] token appears.
 
 ### 10. Saving the Model
-- The model weights are saved to a file (model.h5) to reload the model for future use without retraining.
+- The model weights are saved to a file (Image_Captioning_Model) to reload the model for future use without retraining.
 
 ## 6. Results and Analysis
 
