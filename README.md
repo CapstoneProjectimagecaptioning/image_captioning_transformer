@@ -54,12 +54,12 @@ cd ..
 
 ## 3.  Installation
 ## Preparing the environment
-**Note**: I have developed this project on Mac. It can surely be run on Windows and Mac with some little changes.
+**Note**: I have developed this project on Mac. It can surely be run on Windows and linux with some little changes.
 
 1. Clone the repository, and navigate to the downloaded folder.
 ```
-git clone https://github.com/iamirmasoud/image_captioning.git
-cd image_captioning
+git clone https://github.com/CapstoneProjectimagecaptioning/image_captioning_transformer.git
+cd image_captioning_transformer
 ```
 
 2. Create (and activate) a new environment, named `captioning_env` with Python 3.7. If prompted to proceed with the install `(Proceed [y]/n)` type y.
@@ -217,67 +217,64 @@ generated or the max length limit is reached.
 ## 5. Steps for Code Explanation
 
 ### 1. Data Loading and Preprocessing
-```
-	•	Load Annotations: The code first loads image-caption pairs from the COCO 2017 dataset. It uses JSON files containing images and corresponding captions (captions_train2017.json).
-	•	Pairing Images and Captions: The code then creates a list (img_cap_pairs) that pairs image filenames with their respective captions.
-	•	Dataframe for Captions: It organizes the data in a pandas DataFrame for easier manipulation, including creating a path to each image file.
-	•	Sampling Data: 70,000 image-caption pairs are randomly sampled, making the dataset manageable without needing all data.
-```
+- Load Annotations: The code first loads image-caption pairs from the COCO 2017 dataset. It uses JSON files containing images and corresponding captions (captions_train2017.json).
+- Pairing Images and Captions: The code then creates a list (img_cap_pairs) that pairs image filenames with their respective captions.
+- Dataframe for Captions: It organizes the data in a pandas DataFrame for easier manipulation, including creating a path to each image file.
+- Sampling Data: 70,000 image-caption pairs are randomly sampled, making the dataset manageable without needing all data.
+
 ### 2. Text Preprocessing
-```
-	•	The code preprocesses captions to prepare them for the model. It lowercases the text, removes punctuation, replaces multiple spaces with single spaces, and adds [start] and [end] tokens, marking the beginning and end of each caption.
-```
+- The code preprocesses captions to prepare them for the model. It lowercases the text, removes punctuation, replaces multiple spaces with single spaces, and adds [start] and [end] tokens, marking the beginning and end of each caption.
+
 ### 3. Tokenization
-```
-	•	Vocabulary Setup: A tokenizer (TextVectorization) is created with a vocabulary size of 15,000 words and a maximum token length of 40. It tokenizes captions, transforming them into sequences of integers.
-	•	Saving Vocabulary: The vocabulary is saved to a file so that it can be reused later without retraining.
-	•	Mapping Words to Indexes: word2idx and idx2word are mappings that convert words to indices and vice versa.
-```
+- Vocabulary Setup: A tokenizer (TextVectorization) is created with a vocabulary size of 15,000 words and a maximum token length of 40. It tokenizes captions, transforming them into sequences of integers.
+- Saving Vocabulary: The vocabulary is saved to a file so that it can be reused later without retraining.
+- Mapping Words to Indexes: word2idx and idx2word are mappings that convert words to indices and vice versa.
+
 ### 4. Dataset Preparation
-```
-	•	Image-Caption Mapping: Using a dictionary, each image is mapped to its list of captions. Then, the images are shuffled, and a train-validation split is made (80% for training, 20% for validation).
-	•	Creating TensorFlow Datasets: Using the load_data function, images are resized, preprocessed, and tokenized captions are created as tensors. These tensors are batched for training and validation, improving memory efficiency and allowing parallel processing.
-```
+- Image-Caption Mapping: Using a dictionary, each image is mapped to its list of captions. Then, the images are shuffled, and a train-validation split is made (80% for training, 20% for validation).
+- Creating TensorFlow Datasets: Using the load_data function, images are resized, preprocessed, and tokenized captions are created as tensors. These tensors are batched for training and validation, improving memory efficiency and allowing parallel processing.
+
 ### 5. Data Augmentation
-```
-	•	Basic image augmentations (RandomFlip, RandomRotation, and RandomContrast) are applied to training images to help the model generalize better by learning from slightly altered versions of each image.
-```
+- Basic image augmentations (RandomFlip, RandomRotation, and RandomContrast) are applied to training images to help the model generalize better by learning from slightly altered versions of each image.
+
 ### 6. Model Architecture
-```
-	•	CNN Encoder:
-	•	An InceptionV3 model (pre-trained on ImageNet) is used to process images and extract features, which serve as input to the transformer.
-	•	Transformer Encoder Layer:
-	•	A TransformerEncoderLayer with multi-head self-attention and normalization layers learns the relationships between image features.
-	•	Embeddings Layer:
-	•	This layer adds positional embeddings, allowing the model to capture the order of words in captions.
-	•	Transformer Decoder Layer:
-	•	The TransformerDecoderLayer generates captions. It includes multi-head attention, feedforward neural networks, and dropout to prevent overfitting. Masking ensures that tokens don’t “see” future tokens when predicting the next word.
-```
+#### CNN Encoder:
+- An InceptionV3 model (pre-trained on ImageNet) is used to process images and extract features, which serve as input to the transformer.
+#### Transformer Encoder Layer:
+- A TransformerEncoderLayer with multi-head self-attention and normalization layers learns the relationships between image features.
+#### Embeddings Layer:
+- This layer adds positional embeddings, allowing the model to capture the order of words in captions.
+#### Transformer Decoder Layer:
+- The TransformerDecoderLayer generates captions. It includes multi-head attention, feedforward neural networks, and dropout to prevent overfitting. Masking ensures that tokens don’t “see” future tokens when predicting the next word.
+
 ### 7. Image Captioning Model Class
-```
-	•	The ImageCaptioningModel class wraps the encoder, decoder, and CNN encoder into a unified model for training and inference.
-	•	Loss and Accuracy Calculation: Custom functions track model performance by calculating the loss and accuracy using the tokenized captions and generated predictions.
-```
+- The ImageCaptioningModel class wraps the encoder, decoder, and CNN encoder into a unified model for training and inference.
+- Loss and Accuracy Calculation: Custom functions track model performance by calculating the loss and accuracy using the tokenized captions and generated predictions.
+
 ### 8. Training
-```
-	•	Loss Function: Sparse categorical cross-entropy is used to calculate the difference between predicted and actual tokens, excluding padding tokens.
-	•	Early Stopping: Monitors validation loss to stop training if performance on the validation set stops improving.
-	•	Model Compilation and Training: The model is compiled, optimized, and trained over multiple epochs with early stopping.
-```
+- Loss Function: Sparse categorical cross-entropy is used to calculate the difference between predicted and actual tokens, excluding padding tokens.
+- Early Stopping: Monitors validation loss to stop training if performance on the validation set stops improving.
+- Model Compilation and Training: The model is compiled, optimized, and trained over multiple epochs with early stopping.
+
 ### 9. Evaluation and Caption Generation
-```
-	•	The generate_caption function generates a caption for a new image by feeding it through the model. The function iteratively predicts tokens, appending each token to the generated sequence until the [end] token appears.
-	•	Adding Noise: An option is provided to add slight noise to an image before prediction, which could improve generalization slightly.
-```
+- The generate_caption function generates a caption for a new image by feeding it through the model. The function iteratively predicts tokens, appending each token to the generated sequence until the [end] token appears.
+
 ### 10. Saving the Model
-```
-	•	The model weights are saved to a file (model.h5) to reload the model for future use without retraining.
-```
+- The model weights are saved to a file (model.h5) to reload the model for future use without retraining.
+
 ## 6. Results and Analysis
 
-### Deploy and share image captioning service using Gradio
+### Deployed in Hugging Face Spaces and share image captioning service using Gradio
+The Hugging Face Space Image Captioning GenAI serves as a user-friendly deployment of an image captioning model, designed to generate descriptive captions for uploaded images. The deployment leverages the Hugging Face Spaces infrastructure, which is ideal for hosting machine learning applications with interactive interfaces.
+
+### Key Features of the Deployment:
+- *Web-Based Interaction*: The Space offers an intuitive graphical interface for users to upload images and receive real-time AI-generated captions.
+- *Scalability*: Built on Hugging Face’s robust hosting environment, the application ensures smooth operation, accommodating multiple users simultaneously.
+- *Efficient Framework*: Likely powered by Gradio, the interface integrates seamlessly with the underlying Transformer-based model, enabling fast inference and visually engaging outputs.
+- *Accessibility*: Users do not need any technical knowledge or setup to use the tool—everything is available in-browser.
 
 [Gradio](http://pytorch.org/docs/master/optim.html#torch.optim.Optimizer) is a package that allows users to create simple web apps with just a few lines of code. It is essentially used for the same purpose as Streamlight and Flask but is much simpler to utilize. Many types of web interface tools can be selected including sketchpad, text boxes, file upload buttons, webcam, etc. Using these tools to receive various types of data as input, machine learning tasks such as classification and regression can easily be demoed.
+
 
 You can deploy an interactive version of the image captioning service on your browser by running the following command. Please don't forget to set the `cocoapi_dir` and encoder/decoder model paths to the correct values.
 
@@ -288,10 +285,10 @@ python gradio_main.py
 Access the service URL: http://127.0.0.1:7860/](https://huggingface.co/spaces/premanthcharan/Image_Captioining_GenAI)
 
 ![Image 11-15-24 at 4 45 PM](https://github.com/user-attachments/assets/42c8dddc-112e-424c-b29b-e45116ee0a97)
+- A Web- Interface developed using Gradio platform and deployed into HuggingFace Spaces for user interaction
 
 ![Image 11-15-24 at 4 49 PM](https://github.com/user-attachments/assets/398c8761-4d71-46d5-9f0d-19a0fdb272b7)
-
-Caption Generated: a red double decker bus driving down a street
+- Caption Generated: a red double decker bus driving down a street
 
 ### Model Training
 
