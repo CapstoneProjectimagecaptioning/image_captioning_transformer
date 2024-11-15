@@ -282,10 +282,11 @@ You can deploy an interactive version of the image captioning service on your br
 python gradio_main.py
 ```
 
-Access the service URL: http://127.0.0.1:7860/](https://huggingface.co/spaces/premanthcharan/Image_Captioining_GenAI)
+Access the service URL: https://huggingface.co/spaces/premanthcharan/Image_Captioining_GenAI
 
 ![Image 11-15-24 at 4 45 PM](https://github.com/user-attachments/assets/42c8dddc-112e-424c-b29b-e45116ee0a97)
 - A Web- Interface developed using Gradio platform and deployed into HuggingFace Spaces for user interaction
+
 
 ![Image 11-15-24 at 4 49 PM](https://github.com/user-attachments/assets/398c8761-4d71-46d5-9f0d-19a0fdb272b7)
 - Caption Generated: a red double decker bus driving down a street
