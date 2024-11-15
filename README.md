@@ -20,7 +20,8 @@ This repository, Image captioning is a challenging problem that involves generat
 ### About MS COCO dataset
 The Microsoft **C**ommon **O**bjects in **CO**ntext (MS COCO) dataset is a large-scale dataset for scene understanding.  The dataset is commonly used to train and benchmark object detection, segmentation, and captioning algorithms.  
 
-![Sample Coco Example](images/coco-examples.jpg)
+![Image 11-15-24 at 5 12 PM](https://github.com/user-attachments/assets/1656bf8b-f13b-42ad-aeaa-4eef012f10d6)
+
 
 You can read more about the dataset on the [website](http://cocodataset.org/#home), [research paper](https://arxiv.org/pdf/1405.0312.pdf), or Appendix section at the end of this page.
 
