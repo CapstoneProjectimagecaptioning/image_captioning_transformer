@@ -1,183 +1,113 @@
-# Image Captioning using Transformers Model 
+# Image Captioning Project using Transformers Model 
 ## Contributors: Premanth Alahari, Charan Gudivada
+
 # Table of Contents
 - [1. Introduction](#1-introduction)
-- [2. Run](#2-run)
-  - [2.1. **IMPORTANT NOTE**](#21-important-note)
-  - [2.2. Requiremnts](#22-requiremnts)
-  - [2.3. Create Dataset](#23-create-dataset)
-  - [2.4. Train the model](#24-train-the-model)
-  - [2.5. Testing the model](#25-testing-the-model)
-  - [2.6. Analysis Notebook](#26-analysis-notebook)
-- [3. The Model](#3-the-model)
-  - [3.1. Introduction](#31-introduction)
-  - [3.2. Framework](#32-framework)
-  - [3.3. Training](#33-training)
-  - [3.4. Inference](#34-inference)
-- [4. Analysis](#4-analysis)
-  - [4.1. Model Training](#41-model-training)
-  - [4.2. Inference Output](#42-inference-output)
-    - [4.2.1. Generated Text Length](#421-generated-text-length)
-    - [4.2.2. NLG Metrics](#422-nlg-metrics)
-- [5. References](#5-references)
+- [2. Dataset Used](#2-dataset-used)
+- [3. Installation](#3-installation)
+- [4. Models and Technologies Used](#4-models-and-technologies-used)
+- [5. Steps for Code Explanation](#5-steps-for-code-explanation)
+- [6. Results and Analysis](#6-results-and-analysis)
+- [7. Evaluation Metrics](#7-evaluation-metrics)
+- [8. References](#8-references)
 
 ## 1. Introduction
 
-This repository hosts the course project for the "LT2326: Machine learning for
-statistical NLP" Course. I used a transformer-based model to generate a caption
-for images in this project. This task is known as the Image Captioning task.
+This repository, Image captioning is a challenging problem that involves generating human-like descriptions for images. By utilizing Vision Transformers, this project aims to achieve improved image understanding and caption generation. The combination of computer vision and Transformers has shown promising results in various natural language processing tasks, and this project explores their application to image captioning.
 
-The document will first show how to run the code; then, it will discuss the
-model, its hyperparameters, loss, and performance metrics.  At the end of this
-document, I will discuss the model performance.
+## 2. Dataset Used
 
-This project is based on CPTR [[1]](#1) with some modifications as discussed
-below. The project uses PyTorch as a deep learning framework.
+### About MS COCO dataset
+The Microsoft **C**ommon **O**bjects in **CO**ntext (MS COCO) dataset is a large-scale dataset for scene understanding.  The dataset is commonly used to train and benchmark object detection, segmentation, and captioning algorithms.  
 
-## 2. Run
+![Sample Coco Example](images/coco-examples.jpg)
 
-### 2.1. **IMPORTANT NOTE**
+You can read more about the dataset on the [website](http://cocodataset.org/#home), [research paper](https://arxiv.org/pdf/1405.0312.pdf), or Appendix section at the end of this page.
 
-PyTorch 1.8 provide the tranformer attention avereged across the heads. My
-impelemnetation needs the attention for each head, so I have changed the
-PyTorch implementation. I changed `torch/nn/functional.py` line 4818 from
+## 3. Installation
 
-```python
-return attn_output, attn_output_weights.sum(dim=1) num_heads
+### Install COCO API
+
+1. Clone this repo: https://github.com/cocodataset/cocoapi  
+```
+git clone https://github.com/cocodataset/cocoapi.git  
 ```
 
-to
-
-```python
-return attn_output, attn_output_weights
+2. Setup the coco API (also described in the readme [here](https://github.com/cocodataset/cocoapi)) 
+```
+cd cocoapi/PythonAPI  
+make  
+cd ..
 ```
 
-### 2.2. Requiremnts
+3. Download some specific data from here: http://cocodataset.org/#download (described below)
 
-The code was tested using python 3.8.12. Use `pip install -r requirements.txt`
-to install the required libraries.
+* Under **Annotations**, download:
+  * **2017 Train/Val annotations [241MB]** (extract captions_train2017.json and captions_val2017.json, and place at locations cocoapi/annotations/captions_train2017.json and cocoapi/annotations/captions_val2017.json, respectively)  
+  * **2017 Testing Image info [1MB]** (extract image_info_test2017.json and place at location cocoapi/annotations/image_info_test2017.json)
 
-To run the cells under section "1.6.2 Examine Some Linguistcs Features" in the experiments
-notebook, download the Stanza english model. `stanza.download("en")`
+* Under **Images**, download:
+  * **2017 Train images [83K/13GB]** (extract the train2017 folder and place at location cocoapi/images/train2017/)
+  * **2017 Val images [41K/6GB]** (extract the val2017 folder and place at location cocoapi/images/val2017/)
+  * **2017 Test images [41K/6GB]** (extract the test2017 folder and place at location cocoapi/images/test2017/)
 
-### 2.3. Create Dataset
+## 3.  Installation
+## Preparing the environment
+**Note**: I have developed this project on Mac. It can surely be run on Windows and Mac with some little changes.
 
-The dataset that I used is MS COCO 2017 [[2]](#2). The train images can be downloaded
-from [here](http://images.cocodataset.org/zips/train2017.zip), validation
-images from [here](http://images.cocodataset.org/zips/val2017.zip) and
-the annotations from
-[here](http://images.cocodataset.org/annotations/annotations_trainval2017.zip).
-
-`code/create_dataset.py` processes the images, tokenizes the captions text, and
-creates the vocabulary dictionary. The code also randomly split the data into
-train, validation, and test splits (We only have the train and validation
-splits). Each of train, validation, and testing split contains 86300, 18494,
-and 18493 images respectively.
-
-In the dataset, each image has five or more captions. Five random captions are
-selected during dataset preparation if more than five are available. Also, I
-neglect the words which occur less than three times and replace them with the
-"UNKOWN" special token. Other special tokens are used: the "start of the
-sentence", the "end of the sentence", and the "pad" tokens.
-
-The script saves the images in `hdf5` files, tokenized captions in
-`JSON` files, and the vocabulary dictionary in a  `pth` file.
-
-To run the code the following arguments are needed:
-
-  1. `dataset_dir`: Parent directory contains the MS COCO files
-  2. `json_train`: Relative path to the annotation file for the train split;
-     relative to dataset_dir
-  3. `json_val`: Relative path to the annotation file for the validation split;
-     relative to dataset_dir
-  4. `image_train`: Relative directory to the train images; relative to
-     dataset_dir
-  5. `image_val`: Relative directory to the validation images; relative to
-     dataset_dir
-  6. `output_dir`: Directory to save the output files
-  7. `vector_dir`: Directory to the pre-trained embedding vectors files. The
-     code expects that the directory contains the files for the pre-trained
-     vectors supported by `torchtext.vocab`
-  8. `vector_dim`: The used embedding dimensionality.
-  9. `min_freq`: Minimum frequency needed to include a token in the vocabulary
-  10. `max_len`: Minimum length for captions
-
-You can run the code using the default values of the arguments above.
-
+1. Clone the repository, and navigate to the downloaded folder.
 ```
-python code/create_dataset.py [ARGUMENT]
+git clone https://github.com/iamirmasoud/image_captioning.git
+cd image_captioning
 ```
 
-The code will save under the `output_dir` the following files:
+2. Create (and activate) a new environment, named `captioning_env` with Python 3.7. If prompted to proceed with the install `(Proceed [y]/n)` type y.
 
-  1. Three `hdf5` files cantain the images; one for each split:
-     `train_images.hdf5`, `val_images.hdf5` and `test_images.hdf5`.
-  2. Three `JSONS` files contain the tokenized captions after the encoding
-     using the vocab dictionary: `train_captions.json`, `val_captions.json`,
-     and `test_captions.json`.
-  3. Three `JSONS` files contain the length for each caption:
-     `train_lengthes.json`, `val_lengthes.json`, and `test_lengthes.json`.
-  4. A `pth` for the created vocabulary dictionary: `vocab.pth`
+	```shell
+	conda create -n captioning_env python=3.7
+	source activate captioning_env
+	```
+	
+	At this point your command line should look something like: `(captioning_env) <User>:image_captioning <user>$`. The `(captioning_env)` indicates that your environment has been activated, and you can proceed with further package installations.
 
-
-### 2.4. Train the model
-
-`code/run_train.py` expects the following arguments:
-
-  1. `dataset_dir`: The parent directory contains the process dataset files. It
-     is the same as the `output_dir` in [Section 2.3 Create
-     Dataset](#23-create-dataset)
-  2. `config_path`: Path for the configuration json file `onfig.json`
-  3. `device`: either gpu or cpu
-  4. `resume`: if train resuming is needed pass the checkpoint filename
-
-Loss and evaluation metrics are tracked using Tensorboard. The path to tensoboard files is `logs/exp_0102.1513`.
-
-You can run the code using the default values of the arguments above.
-
+6. Before you can experiment with the code, you'll have to make sure that you have all the libraries and dependencies required to support this project. You will mainly need Python3.7+, PyTorch and its torchvision, OpenCV, and Matplotlib. You can install  dependencies using:
 ```
-python code/run_train.py [ARGUMENT]
+pip install -r requirements.txt
 ```
 
-### 2.5. Testing the model
-
-`code/inference_test.py` reads images from the test split and generats a description using beam search. The output
-of this module is a pandas dataframe that holds the following:
-
-  1. The generated caption
-  2. Top-k generated captions
-  3. Captions ground truth
-  4. Transformer's Encoder-Decoder cross attention
-  5. Evaluation metrics values: "bleu1, bleu2, bleu3, bleu4, gleu, meteor"
-
-`code/inference_test.py` expects the following arguments:
-
-  1. `dataset_dir`: The parent directory contains the process dataset files. It
-     is the same as the `output_dir` in [Section 2.3 Create
-     Dataset](#23-create-dataset)
-  2. `save_dir`: Directory to save the output dataframe
-  3. `config_path`: Path for the configuration json file `onfig.json`
-  4. `checkpoint_name`: File name for the checkpoint model to be tested.
-
-You can run the code using the default values of the arguments above.
-
-```
-python code/inference_test.py [ARGUMENT]
+7. Navigate back to the repo. (Also, your source environment should still be activated at this point.)
+```shell
+cd image_captioning
 ```
 
-### 2.6. Analysis Notebook
+8. Open the directory of notebooks, using the below command. You'll see all of the project files appear in your local environment; open the first notebook and follow the instructions.
+```shell
+jupyter notebook
+```
 
-`code/experiment.ipynb` holds some analysis I did on the model perfromance. Also, the visualization of
-attention is done in the notebook. Both `GIF` and `PNG` images are generated and saved under `images/tests`.
-
-Section 2.0 in the notbook presents randomly selected samples from the `images/tests` using `ipywidgets`. See an example below.
-
-<img src="https://github.com/zarzouram/xformer_img_captnng/blob/main/images/report/firefox_H4tRhSVOok.gif" width="80%" padding="100px 100px 100px 100px">
+9. Once you open any of the project notebooks, make sure you are in the correct `captioning_env` environment by clicking `Kernel > Change Kernel > captioning_env`.
 
 
-## 3. The Model
+## 4. Models and Technologies Used
 
-### 3.1. Introduction
+### The following methods and techniques are employed in this project:
+
+- Vision Transformers (ViTs)
+- Attention mechanisms
+- Language modeling
+- Transfer learning
+- Evaluation metrics for image captioning (e.g., BLEU, METEOR, CIDEr)
+
+### The project is implemented in Python and utilizes the following libraries:
+
+- PyTorch
+- Transformers
+- TorchVision
+- NumPy
+- NLTK
+- Matplotlib
+
+### Introduction
 
 This project uses a transformer [[3]](#3) based model to generate a description
 for images. This task is known as the Image Captioning task. Researchers used
@@ -205,7 +135,7 @@ width="80%" padding="100px 100px 100px 10px">
 
 Figure 1: Encoder Decoder Architecture
 
-### 3.2. Framework
+### Framework
 
 The CPTR [[1]](#1) consists of an image patcher that converts images
 ![x\in\mathbb{R}^{H\times W\times
@@ -238,7 +168,7 @@ width="80%" padding="100px 100px 100px 10px">
 
 Figure 2: Model Architecture
 
-### 3.3. Training
+### Training
 
 The transformer decoder output goes to one fully connected layer, which
 provides –-given the previous token–- a probability distribution
@@ -275,7 +205,7 @@ The pre-trained Glove embeddings [[12]](#12) initialize the word embedding
 weights. The words embeddings are frozen for ten epochs. The Resnet101 network
 is tuned from the beginning.
 
-### 3.4. Inference
+### Inference
 
 A beam search of size five is used to generate a caption for the images in the
 test split. The generation starts by feeding the image and the "start of
@@ -283,9 +213,86 @@ sentence" special tokens. Then at each iteration, five tokens with the highest
 scores are chosen. The generation iteration stops when the "end of sentence" is
 generated or the max length limit is reached.
 
-## 4. Analysis
+## 5. Steps for Code Explanation
 
-### 4.1. Model Training
+### 1. Data Loading and Preprocessing
+```
+	•	Load Annotations: The code first loads image-caption pairs from the COCO 2017 dataset. It uses JSON files containing images and corresponding captions (captions_train2017.json).
+	•	Pairing Images and Captions: The code then creates a list (img_cap_pairs) that pairs image filenames with their respective captions.
+	•	Dataframe for Captions: It organizes the data in a pandas DataFrame for easier manipulation, including creating a path to each image file.
+	•	Sampling Data: 70,000 image-caption pairs are randomly sampled, making the dataset manageable without needing all data.
+```
+### 2. Text Preprocessing
+```
+	•	The code preprocesses captions to prepare them for the model. It lowercases the text, removes punctuation, replaces multiple spaces with single spaces, and adds [start] and [end] tokens, marking the beginning and end of each caption.
+```
+### 3. Tokenization
+```
+	•	Vocabulary Setup: A tokenizer (TextVectorization) is created with a vocabulary size of 15,000 words and a maximum token length of 40. It tokenizes captions, transforming them into sequences of integers.
+	•	Saving Vocabulary: The vocabulary is saved to a file so that it can be reused later without retraining.
+	•	Mapping Words to Indexes: word2idx and idx2word are mappings that convert words to indices and vice versa.
+```
+### 4. Dataset Preparation
+```
+	•	Image-Caption Mapping: Using a dictionary, each image is mapped to its list of captions. Then, the images are shuffled, and a train-validation split is made (80% for training, 20% for validation).
+	•	Creating TensorFlow Datasets: Using the load_data function, images are resized, preprocessed, and tokenized captions are created as tensors. These tensors are batched for training and validation, improving memory efficiency and allowing parallel processing.
+```
+### 5. Data Augmentation
+```
+	•	Basic image augmentations (RandomFlip, RandomRotation, and RandomContrast) are applied to training images to help the model generalize better by learning from slightly altered versions of each image.
+```
+### 6. Model Architecture
+```
+	•	CNN Encoder:
+	•	An InceptionV3 model (pre-trained on ImageNet) is used to process images and extract features, which serve as input to the transformer.
+	•	Transformer Encoder Layer:
+	•	A TransformerEncoderLayer with multi-head self-attention and normalization layers learns the relationships between image features.
+	•	Embeddings Layer:
+	•	This layer adds positional embeddings, allowing the model to capture the order of words in captions.
+	•	Transformer Decoder Layer:
+	•	The TransformerDecoderLayer generates captions. It includes multi-head attention, feedforward neural networks, and dropout to prevent overfitting. Masking ensures that tokens don’t “see” future tokens when predicting the next word.
+```
+### 7. Image Captioning Model Class
+```
+	•	The ImageCaptioningModel class wraps the encoder, decoder, and CNN encoder into a unified model for training and inference.
+	•	Loss and Accuracy Calculation: Custom functions track model performance by calculating the loss and accuracy using the tokenized captions and generated predictions.
+```
+### 8. Training
+```
+	•	Loss Function: Sparse categorical cross-entropy is used to calculate the difference between predicted and actual tokens, excluding padding tokens.
+	•	Early Stopping: Monitors validation loss to stop training if performance on the validation set stops improving.
+	•	Model Compilation and Training: The model is compiled, optimized, and trained over multiple epochs with early stopping.
+```
+### 9. Evaluation and Caption Generation
+```
+	•	The generate_caption function generates a caption for a new image by feeding it through the model. The function iteratively predicts tokens, appending each token to the generated sequence until the [end] token appears.
+	•	Adding Noise: An option is provided to add slight noise to an image before prediction, which could improve generalization slightly.
+```
+### 10. Saving the Model
+```
+	•	The model weights are saved to a file (model.h5) to reload the model for future use without retraining.
+```
+## 6. Results and Analysis
+
+### Deploy and share image captioning service using Gradio
+
+[Gradio](http://pytorch.org/docs/master/optim.html#torch.optim.Optimizer) is a package that allows users to create simple web apps with just a few lines of code. It is essentially used for the same purpose as Streamlight and Flask but is much simpler to utilize. Many types of web interface tools can be selected including sketchpad, text boxes, file upload buttons, webcam, etc. Using these tools to receive various types of data as input, machine learning tasks such as classification and regression can easily be demoed.
+
+You can deploy an interactive version of the image captioning service on your browser by running the following command. Please don't forget to set the `cocoapi_dir` and encoder/decoder model paths to the correct values.
+
+```shell
+python gradio_main.py
+```
+
+Access the service URL: http://127.0.0.1:7860/](https://huggingface.co/spaces/premanthcharan/Image_Captioining_GenAI)
+
+![Image 11-15-24 at 4 45 PM](https://github.com/user-attachments/assets/42c8dddc-112e-424c-b29b-e45116ee0a97)
+
+![Image 11-15-24 at 4 49 PM](https://github.com/user-attachments/assets/398c8761-4d71-46d5-9f0d-19a0fdb272b7)
+
+Caption Generated: a red double decker bus driving down a street
+
+### Model Training
 
 Figure 3 and Figure 4 show the loss and bleu-4 scores during the training and
 validation phases. These figures show that the model starts to overfit early
@@ -322,9 +329,9 @@ The reason for overfitting may be due to the following reasons:
 | :--: | :--: |
 | Figure 3: Loss Curve | Figure 4: Bleu-4 score curv |
 
-### 4.2. Inference Output
+### Inference Output
 
-#### 4.2.1. Generated Text Length
+#### Generated Text Length
 
 Figure 5 shows the generated caption's lengths distribution. The Figure
 indicates that the model tends to generate shorter captions. The distribution
@@ -339,7 +346,7 @@ padding="100px 100px 100px 10px">
 
 Figure 5: Generated caption's lengths distribution
 
-#### 4.2.2. NLG Metrics
+## 7. Evaluation Metrics
 
 The table below shows the mean and standard deviation of the performance
 metrics across the test dataset. The bleu4 has the highest variation,
@@ -352,8 +359,20 @@ scores are less than 0.5. See “code/experiment.ipynb Section 1.4”.
 | :---      | :----: |:----: |:----: |:----: |:----: |:----: |
 |mean ± std | 0.7180 ± 0.17 | 0.5116 ± 0.226 | 0.3791 ± 0.227 | 0.2918 ± 0.215 | 0.2814 ± 0.174 | 0.4975 ± 0.193
 
+### Attention Visualisation
 
-## 5. References
+I will examine the last layer of the transformer encoder-decoder attention. The weights are averaged across its heads. Section 1.5 in the notebook "code/experiment.ipynb" shows that the weights contain outliers. I considered weights that far from 99.95% percentile and higher as outliers. The outlier's values are capped to the 99.95% percentile.
+
+Fourteen samples were randomly selected from the test split to be examined. The sample image is superimposed with the attention weights for each generated token. The output is saved in either GIF format (one image for all generated tokens) or png format (one image for each token). All superimposed images are saved under "images/tests". The reader can examine the selected fourteen superimposed images under section 2.0 from the experiments notebook. You need to rerun all cells under Section 2.0. The samples are categorized as follows:
+
+Category 1. two samples that have the highest bleu4= 1.0
+Category 2. four samples that have the lowest bleu4 scores
+Category 3. two samples that have the low value of bleu4 [up to 0.5]
+Category 4. two samples that have bleu4 score= (0.5 - 0.7]
+Category 5. two samples that have bleu4 score=(0.7 - 0.8]
+Category 6. two samples that have bleu4 score= (0.8 - 1.0)
+
+## 8. References
 
 <a id="1">[1]</a> Liu, W., Chen, S., Guo, L., Zhu, X., & Liu, J. (2021). CPTR:
 Full transformer network for image captioning. arXiv preprint
