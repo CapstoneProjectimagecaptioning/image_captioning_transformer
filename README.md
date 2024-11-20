@@ -130,9 +130,7 @@ model (CPTR) using an encoder-decoder transformer [[1]](#1). The source image is
 to the transformer encoder in sequence patches. Hence, one can treat the image
 captioning problem as a machine translation task.
 
-<img
-src="https://github.com/zarzouram/xformer_img_captnng/blob/main/images/report/Encoder-Decoder.png"
-width="80%" padding="100px 100px 100px 10px">
+<img width="468" alt="image" src="https://github.com/user-attachments/assets/0df16543-ef98-4a22-a0c8-92b5ba8df194">
 
 Figure 1: Encoder Decoder Architecture
 
@@ -163,9 +161,7 @@ The encoder side deals solely with the image part, where it is beneficial to
 exploit the relative position of the features we have. Refer to Figure 2 for
 the model architecture.
 
-<img
-src="https://github.com/zarzouram/xformer_img_captnng/blob/main/images/report/Architectures.png"
-width="80%" padding="100px 100px 100px 10px">
+<img width="468" alt="image" src="https://github.com/user-attachments/assets/73520221-a4fb-4ebf-aefd-20868e180b43">
 
 Figure 2: Model Architecture
 
