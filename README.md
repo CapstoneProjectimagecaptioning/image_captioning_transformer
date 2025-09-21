@@ -1,5 +1,5 @@
 # Image Captioning Project using Transformers Model 
-## Contributors: Charan Gudivada
+## Contributors: Charan Gudivada, Premanth Alahari
 
 # Table of Contents
 - [1. Introduction](#1-introduction)
